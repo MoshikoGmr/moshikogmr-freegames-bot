@@ -1,7 +1,6 @@
 require("dotenv").config();
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const Parser = require("rss-parser");
-const cron = require("node-cron");
 const fs = require("fs");
 
 const client = new Client({
@@ -124,8 +123,19 @@ client.once("ready", () => {
   // Corre apenas arranca
   checkFeedAndPost();
 
-  // Luego revisa cada 10 minutos
-  cron.schedule("*/10 * * * *", () => checkFeedAndPost());
+  client.once("ready", async () => {
+  console.log(`Conectado como ${client.user.tag}`);
+
+  try {
+    await checkFeedAndPost();
+  } catch (e) {
+    console.error("Error en ejecución:", e);
+  } finally {
+    process.exit(0); // <- CLAVE: termina el job
+  }
+});
+
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
