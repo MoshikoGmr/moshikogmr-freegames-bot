@@ -19,29 +19,43 @@ function loadPosted() {
 function savePosted(data) {
   fs.writeFileSync(postedFile, JSON.stringify(data, null, 2));
 }
-function getImageFromLink(link) {
+function getImageFromLink(item) {
+  // 0) Si el RSS trae imagen real, úsala primero
+  const enclosure = item?.enclosure?.url;
+  if (enclosure) return enclosure;
+
+  const link = item?.link || "";
   if (!link) return null;
 
-  // Steam → portada oficial
+  // 1) Steam → imagen real del juego
   const steamMatch = link.match(/store\.steampowered\.com\/app\/(\d+)/);
   if (steamMatch) {
     const appId = steamMatch[1];
     return `https://cdn.akamai.steamstatic.com/steam/apps/${appId}/header.jpg`;
   }
 
-  // IndieGala → imagen limpia genérica
-  if (link.includes("indiegala")) {
-    return "https://www.indiegala.com/themes/images/indiegala_logo.png";
+  // 2) Epic → logo (estable)
+  if (link.includes("epicgames.com")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/3/31/Epic_Games_logo.svg";
   }
 
-  // Itch.io → icono oficial
+  // 3) GOG → logo (estable)
+  if (link.includes("gog.com")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/5/5f/GOG.com_logo.svg";
+  }
+
+  // 4) Itch / IndieGala → logo (estable)
   if (link.includes("itch.io")) {
-    return "https://static.itch.io/images/app-icon.png";
+    return "https://upload.wikimedia.org/wikipedia/commons/7/7e/Itch.io_logo.svg";
+  }
+  if (link.includes("indiegala")) {
+    return "https://upload.wikimedia.org/wikipedia/commons/2/2d/IndieGala_logo.png";
   }
 
-  // Fallback gamer (puedes cambiarla luego por una tuya)
-  return "https://i.imgur.com/8ZQZQZQ.png";
+  // 5) Fallback gamer
+  return "https://upload.wikimedia.org/wikipedia/commons/6/6f/Gamepad_icon.svg";
 }
+
 
 function buildEmbed(item) {
   const title = item.title?.trim() || "Free game";
@@ -59,7 +73,7 @@ function buildEmbed(item) {
     .setFooter({ text: "🔥 Freebies para la comunidad" });
 
   // Si el RSS trae imagen (a veces sí), intenta usarla
- const image = getImageFromLink(item.link);
+const image = getImageFromLink(item);
 if (image) embed.setImage(image);
 
 
@@ -138,4 +152,5 @@ client.once("ready", () => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
+
 
