@@ -1,4 +1,4 @@
-require("dotenv").config();
+if (!process.env.DISCORD_TOKEN) require("dotenv").config();
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const Parser = require("rss-parser");
 const fs = require("fs");
@@ -131,13 +131,7 @@ async function checkFeedAndPost() {
   console.log("Check OK:", new Date().toLocaleString());
 }
 
-client.once("ready", () => {
-  console.log(`Conectado como ${client.user.tag}`);
-
-  // Corre apenas arranca
-  checkFeedAndPost();
-
-  client.once("ready", async () => {
+client.once("ready", async () => {
   console.log(`Conectado como ${client.user.tag}`);
 
   try {
@@ -145,12 +139,8 @@ client.once("ready", () => {
   } catch (e) {
     console.error("Error en ejecución:", e);
   } finally {
-    process.exit(0); // <- CLAVE: termina el job
+    process.exit(0);
   }
 });
 
-});
-
 client.login(process.env.DISCORD_TOKEN);
-
-
